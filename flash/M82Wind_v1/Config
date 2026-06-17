@@ -1,0 +1,50 @@
+# Config: FLASH 4.8 simulation setup for M82 Biconical Starburst Wind
+
+REQUIRES Driver
+REQUIRES Grid
+REQUIRES Grid/GridMain/AMR/Paramesh4dev
+REQUIRES physics/Hydro/HydroMain/unsplit
+REQUIRES physics/Eos/EosMain/Gamma
+REQUIRES physics/sourceTerms/TwoTemperature/TwoTemperatureMain
+REQUIRES physics/sourceTerms/ImmersedBoundary/ImmersedBoundaryMain
+REQUIRES IO/IOMain/hdf5/parallel/PM
+
+## Domain and sphere geometry
+D  sim_Lbox           Full box = 2*sim_Lbox
+D  sim_Rsph           Radius of the starburst source sphere (cm)
+D  sim_coneHalfAngle  Half-opening angle of the biconical funnel (degrees)
+
+PARAMETER sim_Lbox            REAL    3.086e21    ## 1 kpc  (box runs -Lbox..+Lbox per axis)
+PARAMETER sim_Rsph            REAL    3.086e20    ## 100 pc
+PARAMETER sim_coneHalfAngle   REAL    30.0        ## degrees
+
+## Ambient (inter-cone) initial conditions
+D  sim_nAmb           Ambient number density (cm^-3)
+D  sim_Tamb           Ambient temperature for both ion and electron fluids (K)
+
+PARAMETER sim_nAmb            REAL    0.01        ## cm^-3
+PARAMETER sim_Tamb            REAL    1.0e4       ## K
+
+## Sphere initial conditions (two-temperature)
+D  sim_nSph           Number density inside the starburst sphere (cm^-3)
+D  sim_TiSph          Ion temperature inside the sphere (K)
+D  sim_TeSph          Electron temperature inside the sphere (K)
+
+PARAMETER sim_nSph            REAL    100.0       ## cm^-3
+PARAMETER sim_TiSph           REAL    1.16e8      ## 10 keV in K
+PARAMETER sim_TeSph           REAL    1.16e6      ## 0.1 keV in K (initial decoupling)
+
+## Physical constants
+D  sim_kB             Boltzmann constant (erg/K)
+D  sim_mp             Proton mass (g)
+D  sim_mu             Mean molecular weight (0.5 for fully ionised H)
+D  sim_gamma          Adiabatic index
+
+PARAMETER sim_kB              REAL    1.380649e-16
+PARAMETER sim_mp              REAL    1.67262192e-24
+PARAMETER sim_mu              REAL    0.5
+PARAMETER sim_gamma           REAL    1.6666666667
+
+## Coulomb coupling (passed to TwoTemperature unit)
+D  sim_coulombLog      Coulomb logarithm for ion-electron energy exchange
+PARAMETER sim_coulombLog       REAL    35.0

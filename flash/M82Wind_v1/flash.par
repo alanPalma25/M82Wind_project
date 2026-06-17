@@ -1,0 +1,146 @@
+# M82 wind outflow - biconical
+
+
+# 1. SIMULATION-SPECIFIC PHYSICAL PARAMETERS
+
+sim_Lbox            = 3.086e21      # half-box = 1 kpc; full box = 2 kpc
+
+# Starburst sphere
+# Radius of the central energy/mass injection sphere.
+# M82 starburst half-light radius (around 300 pc), we use 100 pc for the "core".
+sim_Rsph            = 3.086e20      # 100 pc
+
+# Biconical funnel half-opening angle
+# Observationally inferred from M82 Halpha cone morphology (~30-40 deg).
+sim_coneHalfAngle   = 30.0    
+
+# Ambient medium
+sim_nAmb            = 0.01          # diffuse hot halo gas
+sim_Tamb            = 1.0e4         # both fluids start in equilibrium
+
+# Starburst sphere: two-temperature initial conditions
+sim_nSph            = 100.0         # [cm^-3]   dense starburst core
+sim_TiSph           = 1.16e8        # [K]       ions  : 10 keV (SN-heated)
+sim_TeSph           = 1.16e6        # [K]       electrons: 0.1 keV (decoupled)
+
+# Physical constants
+sim_kB              = 1.380649e-16  # Boltzmann constant
+sim_mp              = 1.67262192e-24# proton mass
+sim_mu              = 0.5           # mean molecular weight, pure ionised H
+sim_gamma           = 1.6666666667  # adiabatic index (5/3 monatomic)
+
+# Coulomb coupling (when using multigamma)
+sim_coulombLog      = 35.0
+
+# 2. GRID SETUP
+
+# Domain
+xmin                = -3.086e21     # -1 kpc
+xmax                =  3.086e21     # +1 kpc
+ymin                = -3.086e21
+ymax                =  3.086e21
+zmin                = -3.086e21
+zmax                =  3.086e21
+
+nblockX             = 4
+nblockY             = 4
+nblockZ             = 4
+
+lrefine_max         = 1
+lrefine_min         = 1
+
+# 3. BOUNDARY CONDITIONS
+
+xl_boundary_type    = "outflow"
+xr_boundary_type    = "outflow"
+yl_boundary_type    = "outflow"
+yr_boundary_type    = "outflow"
+zl_boundary_type    = "outflow"
+zr_boundary_type    = "outflow"
+
+
+# 4. HYDRODYNAMICS  (unsplit PPM solver)
+==
+
+# Use the unsplit solver with PPM reconstruction.
+useHydro            = .true.
+order               = 2             # 2nd-order spatial reconstruction
+# RiemannSolver       = "HLLC"    
+cfl                 = 0.4           # CFL safety factor
+charLimiting        = .true.        # characteristic-variable slope limiting
+use_steepening      = .false.       # contact steepening (off for smooth wind)
+use_flattening      = .true.        # flattening near strong shocks
+use_gravity         = .false.    
+
+# Floors to prevent negative densities / energies
+smalldens           = 1.0e-30       
+smalle              = 1.0e-30        
+smlrho              = 1.0e-30  
+
+# 5. EQUATION OF STATE
+
+# Gamma must match sim_gamma above.
+gamma               = 1.6666666667
+eos_singleSpeciesA  = 1.0           # hydrogen mass number
+eos_singleSpeciesZ  = 1.0           # hydrogen atomic number
+
+
+
+# 6. TWO-TEMPERATURE MODULE
+
+# Enable the two-fluid (ion + electron) internal energy treatment.
+useTwoTemperature   = .true.
+
+# Coulomb logarithm
+coulomb_log         = 35.0
+
+# Coupling scheme: "implicit" is more stable for stiff Coulomb exchange
+twoT_coupling_scheme = "implicit"
+
+# Electron thermal conduction (optional; disable for base runs)
+useConductivity     = .false.
+
+# TwoTemperature floor temperatures
+tite_min            = 1.0e3         # minimum T_ion  = T_ele floor [K]
+
+# 8. DRIVER / TIME INTEGRATION
+
+dtinit              = 3.156e7       # 1 year in seconds
+dtmin               = 1.0e0         # 1 second  (emergency floor)
+dtmax               = 3.156e12      # 0.1 Myr   (maximum single step)
+tmax                = 3.156e13      # 1 Myr  (wind establishment phase)
+nend                = 100000
+wall_clock_time_limit = 10800.0    # 24 hours
+
+# 9. OUTPUT
+
+checkpointFileIntervalTime  = 3.156e12   # every 0.1 Myr
+checkpointFileIntervalStep  = 5000       # or every 5000 steps
+checkpointFileNumber        = 0
+
+plotFileIntervalTime        = 3.156e11   # every 0.01 Myr (10 kyr)
+plotFileIntervalStep        = 1000       # or every 1000 steps
+plotFileNumber              = 0
+
+plot_var_1  = "dens"     # mass density
+plot_var_2  = "velx"     # x-velocity
+plot_var_3  = "vely"     # y-velocity
+plot_var_4  = "velz"     # z-velocity
+plot_var_5  = "pres"     # total pressure
+plot_var_6  = "eion"     # specific ion internal energy
+plot_var_7  = "eele"     # specific electron internal energy
+plot_var_8  = "tion"     # ion temperature
+plot_var_9  = "tele"     # electron temperature
+
+basenm      = "M82Wind_"
+particleFileIntervalStep = 0
+
+# 10. GRAVITY  (external potential -- enable in production runs)
+
+# useGravity          = .false.
+
+# 11. PARTICLE
+
+# useParticles        = .false.
+# pt_numParticlesWanted = 50000
+# pt_initialFileNumber  = 0
