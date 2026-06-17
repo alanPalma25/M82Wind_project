@@ -33,6 +33,7 @@ subroutine Simulation_adjustEvolution(blkcnt, blklst, nstep, dt, stime)
                                Grid_putPointData,       &
                                Grid_getPointData
   use Eos_interface,    only : Eos_wrapped
+  use Driver_interface, only : Driver_getMyPE
 
   implicit none
 
@@ -54,6 +55,14 @@ subroutine Simulation_adjustEvolution(blkcnt, blklst, nstep, dt, stime)
   integer :: i, j, k
   integer, dimension(MDIM) :: axis
   real :: xcell, ycell, zcell, dist
+  integer :: myPE
+  
+  ! Check if the routine is executing
+  call Driver_getMyPE(MESH_COMM, myPE)
+  if (myPE == 0 .and. (nstep == 1 .or. mod(nstep, 10) == 0)) then
+     write(*,*) 'Simulation_adjustEvolution: step=', nstep, ' time=', stime
+  end if
+
 
   ! Loop over all blocks
   do lb = 1, blkcnt
@@ -88,12 +97,12 @@ subroutine Simulation_adjustEvolution(blkcnt, blklst, nstep, dt, stime)
                  axis(KAXIS) = k
 
                  ! Reset to initial conditions
-                 call Grid_putPointData(blockID, CENTER, DENS_VAR, INTERIOR, axis, sim_rhoSph)
-                 call Grid_putPointData(blockID, CENTER, VELX_VAR, INTERIOR, axis, 0.0e0)
-                 call Grid_putPointData(blockID, CENTER, VELY_VAR, INTERIOR, axis, 0.0e0)
-                 call Grid_putPointData(blockID, CENTER, VELZ_VAR, INTERIOR, axis, 0.0e0)
-                 call Grid_putPointData(blockID, CENTER, TION_VAR, INTERIOR, axis, sim_TiSph)
-                 call Grid_putPointData(blockID, CENTER, TELE_VAR, INTERIOR, axis, sim_TeSph)
+                 call Grid_putPointData(blockID, CENTER, DENS_VAR, EXTERIOR, axis, sim_rhoSph)
+                 call Grid_putPointData(blockID, CENTER, VELX_VAR, EXTERIOR, axis, 0.0e0)
+                 call Grid_putPointData(blockID, CENTER, VELY_VAR, EXTERIOR, axis, 0.0e0)
+                 call Grid_putPointData(blockID, CENTER, VELZ_VAR, EXTERIOR, axis, 0.0e0)
+                 call Grid_putPointData(blockID, CENTER, TION_VAR, EXTERIOR, axis, sim_TiSph)
+                 call Grid_putPointData(blockID, CENTER, TELE_VAR, EXTERIOR, axis, sim_TeSph)
 
                  ! Do NOT set internal energies; Eos_wrapped will recompute them.
               end if
