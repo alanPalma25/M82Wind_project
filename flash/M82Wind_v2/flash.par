@@ -1,0 +1,162 @@
+# flash.par Runtime parameter file for "M82 Biconical Wind" simulation
+
+# 1. SIMULATION-SPECIFIC PHYSICAL PARAMETERS
+
+# Domain geometry 
+
+sim_Lbox            = 3.086e21      # [cm]  half-box = 1 kpc
+
+# Starburst sphere
+# Radius of the central energy/mass injection sphere.
+# M82 starburst half-light radius 300 pc (we use 100 pc for the "core")
+sim_Rsph            = 7.715e20      # [cm]  250 pc
+
+# Biconical funnel half-opening angle
+sim_coneHalfAngle   = 30.0          # [degrees]
+
+# Ambient medium (outside sphere, outside cone)
+sim_nAmb            = 0.01          # [cm^-3]   diffuse hot halo gas
+sim_Tamb            = 1.0e4         # [K]       both fluids start in equilibrium
+
+# two-temperature initial conditions 
+# Reference: Boettcher et al. 2026 (XRISM); Chevalier & Clegg 1985
+sim_nSph            = 100.0         # [cm^-3]   dense starburst core
+sim_TiSph           = 1.16e8        # [K]       ions  : 10 keV (SN-heated)
+sim_TeSph           = 1.16e6        # [K]       electrons: 0.1 keV (decoupled)
+
+# Physical constants (CGS)
+sim_kB              = 1.380649e-16  # [erg/K]   Boltzmann constant
+sim_mp              = 1.67262192e-24 # [g]       proton mass
+sim_mu              = 0.5           # []        mean molecular weight, pure ionised H
+sim_gamma           = 1.6666666667  # []        adiabatic index (5/3 monatomic)
+
+# Coulomb coupling
+# sim_coulombLog      = 35.0
+
+# Injection source (CC85 wind model)
+sim_Mdot_T          = 1.89e26   # [g/s]  beta=0.3, Mdot_SFR=10 Msun/yr
+sim_Edot_T          = 3.1e42    # [erg/s] alpha=1
+sim_Delta           = 0.0       # uniform injection (CC85)
+
+# 2. GRID SETUP  (Paramesh4 / AMR)
+
+# Domain extents (box centred at origin)
+xmin                = -3.086e21     # [cm]  -1 kpc
+xmax                =  3.086e21     # [cm]  +1 kpc
+ymin                = -3.086e21
+ymax                =  3.086e21
+zmin                = -3.086e21
+zmax                =  3.086e21
+
+# Base grid defined in the setup
+geometry = "cartesian"
+nblockx = 8   # number of root blocks in x (adjust as needed)
+nblocky = 8
+nblockz = 8
+# iProcs = 1
+# jProcs = 1
+# kProcs = 1
+
+# 3. BOUNDARY CONDITIONS 
+
+# All six domain faces use zero-gradient (outflow / free) conditions.
+xl_boundary_type    = "outflow"
+xr_boundary_type    = "outflow"
+yl_boundary_type    = "outflow"
+yr_boundary_type    = "outflow"
+zl_boundary_type    = "outflow"
+zr_boundary_type    = "outflow"
+
+
+# 4. HYDRODYNAMICS
+
+# Use the unsplit solver with PPM reconstruction.
+useHydro            = .true.
+order               = 2             # 2nd-order spatial reconstruction (PLM/PPM)
+RiemannSolver       = "HLLC"        # HLLC handles two-T well; Roe also works
+cfl                 = 0.4           # CFL safety factor
+charLimiting        = .true.        # characteristic-variable slope limiting
+use_steepening      = .false.       # contact steepening (off for smooth wind)
+use_flattening      = .true.        # flattening near strong shocks
+use_gravity         = .false.       # gravity off for initial tests; enable later
+
+# Floors to prevent negative densities / energies
+small      =  1.0e-99
+smlrho     =  1.0e-99
+smallp     =  1.0e-99
+smalle     =  1.0e-99
+smallt     =  1.0
+smallu     =  1.0e-99
+smallx     =  1.0e-99
+
+# 5. EQUATION OF STATE
+
+# Ideal gamma-law EOS. Gamma must match sim_gamma above.
+gamma               = 1.6666666667
+eos_singleSpeciesA  = 1.0           # hydrogen mass number
+eos_singleSpeciesZ  = 1.0           # hydrogen atomic number (fully ionised)
+
+eosModeInit = "dens_temp_gather"
+eosMode = "dens_ie_gather"        # if needed during evolution
+hy_eosModeAfter = "dens_ie_gather"  # optional, for internal energy update
+
+# 6. TWO-TEMPERATURE MODULE
+
+# Enable the two-fluid (ion + electron) internal energy treatment.
+# The TwoTemperature unit evolves EION_VAR and EELE_VAR independently
+# and applies Coulomb coupling as an operator-split source term.
+# useTwoTemperature   = .true.
+
+# Coulomb logarithm (must match sim_coulombLog for consistency)
+# coulomb_log         = 35.0
+
+# Coupling scheme: "implicit" is more stable for stiff Coulomb exchange
+# (relevant when t_eq << dt_hydro, which occurs at high density in sphere).
+# twoT_coupling_scheme = "implicit"
+
+# Electron thermal conduction (optional; disable for base runs)
+useConductivity     = .false.
+
+# TwoTemperature floor temperatures
+# tite_min            = 1.0e3         # minimum T_ion  = T_ele floor [K]
+
+# 7. DRIVER / TIME INTEGRATION
+
+# Initial timestep 
+dtinit              = 3.156e7       # 1 year in seconds
+dtmin               = 1.0e0         # 1 second  (emergency floor)
+dtmax               = 3.156e12      # 0.1 Myr   (maximum single step)
+tmax                = 3.156e13      # 1 Myr  (wind establishment phase)
+nend                = 100000
+
+# Maximum runtime in wall-clock hours
+wall_clock_time_limit = 86400.0    # 24 hours
+
+# 9. OUTPUT
+
+checkpointFileIntervalTime  = 3.156e12   # every 0.1 Myr
+checkpointFileIntervalStep  = 5000       # or every 5000 steps (whichever first)
+checkpointFileNumber        = 0
+
+plotFileIntervalTime        = 3.156e11   # every 0.01 Myr (10 kyr)
+plotFileIntervalStep        = 1000       # or every 1000 steps
+plotFileNumber              = 0
+
+# Variables to write into plot files
+plot_var_1  = "dens"     # mass density
+plot_var_2  = "velx"     # x-velocity
+plot_var_3  = "vely"     # y-velocity
+plot_var_4  = "velz"     # z-velocity
+plot_var_5  = "pres"     # total pressure
+plot_var_6  = "eion"     # specific ion internal energy
+plot_var_7  = "eele"     # specific electron internal energy
+plot_var_8  = "tion"     # ion temperature
+plot_var_9  = "tele"     # electron temperature
+
+basenm      = "M82Wind_"
+
+# particleFileIntervalStep = 0
+
+# 10. GRAVITY
+
+useGravity          = .false.

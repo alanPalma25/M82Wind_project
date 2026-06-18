@@ -1,0 +1,6 @@
+# Makefile: M82 Biconical Wind simulation
+
+Simulation += Simulation_data.o Simulation_adjustEvolution.o
+
+Simulation_init.o : Simulation_data.o
+Simulation_initBlock.o : Simulation_data.o

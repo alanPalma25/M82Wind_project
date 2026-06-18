@@ -1,0 +1,66 @@
+## FLASH 4.x simulation setup for M82 Biconical Starburst Wind
+##
+## Physics motivation:
+##   Models the hot starburst-driven wind of M82 as measured by XRISM/Resolve
+##   (Boettcher et al., Nature 651, 909-913, 2026
+##   XRISM detected two temperature components:
+##     - hot nuclear wind:  kT_ion  10 keV   (T_ion  1.16e8 K)
+##     - electron fluid:    kT_ele   4 keV   (T_ele  4.64e7 K)
+##   with Coulomb equilibration ongoing on 0.1-1 Myr timescales.
+##   The biconical geometry reflects the galactic-disk collimation of the outflow.
+
+REQUIRES Driver
+REQUIRES Grid
+REQUIRES Grid/GridMain
+REQUIRES physics/Hydro/HydroMain/split/PPM/multiTemp
+REQUIRES physics/Eos/EosMain/multiTemp/Gamma
+# REQUIRES IO/IOMain/hdf5/parallel/PM
+
+## Domain and sphere geometry
+D  sim_Lbox           Half-length of the cubic box (cm)
+D  sim_Rsph           Radius of the starburst source sphere (cm)
+D  sim_coneHalfAngle  Half-opening angle of the biconical funnel (degrees)
+
+PARAMETER sim_Lbox            REAL    3.086e21    ## 1 kpc
+PARAMETER sim_Rsph            REAL    3.086e20    ## 100 pc
+PARAMETER sim_coneHalfAngle   REAL    30.0        ## degrees
+
+## Injection source (CC85 wind model)
+D  sim_Mdot_T        Total mass injection rate (g/s)
+D  sim_Edot_T        Total energy injection rate (erg/s)
+D  sim_Delta         Power-law index for injection (0 = uniform CC85)
+
+PARAMETER sim_Mdot_T          REAL    1.89e26    ## beta=0.3, Mdot_SFR=10 Msun/yr
+PARAMETER sim_Edot_T          REAL    3.1e42     ## alpha=1, Edot=3.1e41*SFR
+PARAMETER sim_Delta           REAL    0.0        ## CC85 uniform
+
+## Ambient (inter-cone) initial conditions
+D  sim_nAmb           Ambient number density (cm^-3)
+D  sim_Tamb           Ambient temperature for both ion and electron fluids (K)
+
+PARAMETER sim_nAmb            REAL    0.01        ## cm^-3
+PARAMETER sim_Tamb            REAL    1.0e4       ## K
+
+## Sphere initial conditions (two-temperature)
+D  sim_nSph           Number density inside the starburst sphere (cm^-3)
+D  sim_TiSph          Ion temperature inside the sphere (K)
+D  sim_TeSph          Electron temperature inside the sphere (K)
+
+PARAMETER sim_nSph            REAL    100.0       ## cm^-3
+PARAMETER sim_TiSph           REAL    1.16e8      ## 10 keV in K
+PARAMETER sim_TeSph           REAL    1.16e6      ## 0.1 keV in K (initial decoupling)
+
+## Physical constants
+D  sim_kB             Boltzmann constant (erg/K)
+D  sim_mp             Proton mass (g)
+D  sim_mu             Mean molecular weight (0.5 for fully ionised H)
+D  sim_gamma          Adiabatic index
+
+PARAMETER sim_kB              REAL    1.380649e-16
+PARAMETER sim_mp              REAL    1.67262192e-24
+PARAMETER sim_mu              REAL    0.5
+PARAMETER sim_gamma           REAL    1.6666666667
+
+## Coulomb coupling (passed to TwoTemperature unit)
+D  sim_coulombLog      Coulomb logarithm for ion-electron energy exchange
+PARAMETER sim_coulombLog       REAL    35.0
